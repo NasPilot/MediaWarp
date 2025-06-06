@@ -12,6 +12,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"reflect"
+	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +27,19 @@ import (
 //
 // 将需要修改上游响应的处理器包装成一个 gin.HandlerFunc 处理器
 func responseModifyCreater(proxy *httputil.ReverseProxy, modifyResponseFN func(rw *http.Response) error) gin.HandlerFunc {
-	proxy.ModifyResponse = modifyResponseFN
+	funcPtr := reflect.ValueOf(modifyResponseFN).Pointer()
+	funcName := strings.ReplaceAll(runtime.FuncForPC(funcPtr).Name(), "-fm", "")
+	logging.Debugf("创建响应修改处理器：%s", funcName)
+
+	proxy.ModifyResponse = func(rw *http.Response) error {
+		defer func() {
+			if r := recover(); r != nil {
+				logging.Errorf("%s 发生 panic：%s\n%s", funcName, r, string(debug.Stack()))
+			}
+		}()
+		return modifyResponseFN(rw)
+	}
+
 	return func(ctx *gin.Context) {
 		proxy.ServeHTTP(ctx.Writer, ctx.Request)
 	}
@@ -205,9 +220,13 @@ func getFinalURL(rawURL string, ua string) (string, error) {
 			if err != nil {
 				return "", ErrInvalidLocationHeader
 			}
-
-			// 处理相对路径重定向
 			currentURL = location.String()
+			if strings.HasPrefix(currentURL, "/302/?pickcode=") {
+				fullURL := fmt.Sprintf("%s://%s%s", req.URL.Scheme, req.URL.Host, location)
+				logging.Debugf("拼接完整 URL：%s -> %s", currentURL, fullURL)
+				currentURL = fullURL
+			}
+
 			continue
 		}
 

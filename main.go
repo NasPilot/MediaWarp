@@ -43,6 +43,13 @@ func main() {
 		return
 	}
 
+	gin.SetMode(gin.ReleaseMode)
+
+	if isDebug {
+		logging.SetLevel(logrus.DebugLevel)
+		fmt.Println("已启用调试模式")
+	}
+
 	signChan := make(chan os.Signal, 1)
 	errChan := make(chan error, 1)
 	signal.Notify(signChan, syscall.SIGINT, syscall.SIGTERM)
@@ -60,13 +67,6 @@ func main() {
 	if err := handler.Init(); err != nil {                                                   // 初始化媒体服务器处理器
 		logging.Error("媒体服务器处理器初始化失败：", err)
 		return
-	}
-
-	if isDebug {
-		logging.SetLevel(logrus.DebugLevel)
-		logging.Warning("已启用调试模式")
-	} else {
-		gin.SetMode(gin.ReleaseMode)
 	}
 
 	logging.Info("MediaWarp 监听端口：", config.Port)
