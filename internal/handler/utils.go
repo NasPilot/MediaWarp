@@ -258,14 +258,12 @@ func encodeURL(rawURL string) (string, error) {
 		return "", err
 	}
 
-	query := u.Query()
-	encodedQuery := url.Values{}
-	for key, values := range query {
-		for _, value := range values {
-			encodedQuery.Add(key, value)
-		}
-	}
-	u.RawQuery = encodedQuery.Encode()
+	// 处理路径部分
+	u.Path = url.PathEscape(u.Path)
+
+	// 处理查询部分（确保空格是%20而不是+）
+	q := u.Query()
+	u.RawQuery = q.Encode()
 
 	return u.String(), nil
 }
