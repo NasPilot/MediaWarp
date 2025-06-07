@@ -255,22 +255,10 @@ func getFinalURL(rawURL string, ua string) (string, error) {
 func encodeURL(rawURL string) (string, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("invalid URL: %v", err)
 	}
 
-	pathParts := strings.Split(u.Path, "/")
-	for i, part := range pathParts {
-		pathParts[i] = url.PathEscape(part)
-	}
-	u.Path = strings.Join(pathParts, "/")
-
-	if u.RawQuery != "" {
-		q, err := url.ParseQuery(u.RawQuery)
-		if err != nil {
-			return "", err
-		}
-		u.RawQuery = q.Encode()
-	}
-
+	// 重新组装URL，确保所有部分都被正确编码
+	u.RawQuery = u.Query().Encode()
 	return u.String(), nil
 }
