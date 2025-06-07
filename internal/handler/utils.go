@@ -258,12 +258,19 @@ func encodeURL(rawURL string) (string, error) {
 		return "", err
 	}
 
-	// 处理路径部分
-	u.Path = url.PathEscape(u.Path)
+	pathParts := strings.Split(u.Path, "/")
+	for i, part := range pathParts {
+		pathParts[i] = url.PathEscape(part)
+	}
+	u.Path = strings.Join(pathParts, "/")
 
-	// 处理查询部分（确保空格是%20而不是+）
-	q := u.Query()
-	u.RawQuery = q.Encode()
+	if u.RawQuery != "" {
+		q, err := url.ParseQuery(u.RawQuery)
+		if err != nil {
+			return "", err
+		}
+		u.RawQuery = q.Encode()
+	}
 
 	return u.String(), nil
 }
