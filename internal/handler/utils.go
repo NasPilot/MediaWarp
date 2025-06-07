@@ -172,7 +172,13 @@ func getFinalURL(rawURL string, ua string) (string, error) {
 		logging.Debugf("获取 %s 最终URL耗时：%s", rawURL, time.Since(startTime))
 	}()
 
-	parsedURL, err := url.Parse(rawURL) // 验证并解析输入URL
+	// 先对原始URL进行编码处理
+	encodedURL, err := encodeURL(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("URL编码失败: %w", err)
+	}
+
+	parsedURL, err := url.Parse(encodedURL) // 验证并解析输入URL
 	if err != nil {
 		return "", fmt.Errorf("非法 URL： %w", err)
 	}
@@ -220,7 +226,14 @@ func getFinalURL(rawURL string, ua string) (string, error) {
 			if err != nil {
 				return "", ErrInvalidLocationHeader
 			}
-			currentURL = location.String()
+			
+			// 对重定向URL进行编码处理
+			encodedLocation, err := encodeURL(location.String())
+			if err != nil {
+				return "", fmt.Errorf("重定向URL编码失败: %w", err)
+			}
+			currentURL = encodedLocation
+			
 			if strings.HasPrefix(currentURL, "/302/?pickcode=") {
 				fullURL := fmt.Sprintf("%s://%s%s", req.URL.Scheme, req.URL.Host, location)
 				logging.Debugf("拼接完整 URL：%s -> %s", currentURL, fullURL)
@@ -236,4 +249,18 @@ func getFinalURL(rawURL string, ua string) (string, error) {
 	}
 
 	return "", ErrMaxRedirectsExceeded
+}
+
+// encodeURL 对URL进行编码处理，确保特殊字符被正确转义
+func encodeURL(rawURL string) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+	
+	// 分解URL并对需要编码的部分进行处理
+	u.RawQuery = u.Query().Encode()
+	u.Path = url.PathEscape(u.Path)
+	
+	return u.String(), nil
 }
