@@ -1,9 +1,9 @@
-Port: 9000                                  # MideWarp 监听端口
+Port: 9000                                  # MediaWarp 监听端口
 
 MediaServer:                                # 媒体服务器相关设置
-  Type: Emby                                # 媒体服务器类型（可选选项：Emby、Jellyfin）
-  ADDR: http://localhost:8096               # 媒体服务器地址
-  AUTH: 2eaxxxxxxxxxa8                      # 媒体服务器认证方式
+  Type: Plex                                # 媒体服务器类型（可选选项：Emby、Jellyfin、Plex）
+  ADDR: http://localhost:32400              # 媒体服务器地址
+  AUTH: xxxxxxxxxxxxxxxxxxxx                # 媒体服务器认证方式（Plex Token）
 
 Logger:                                     # 日志设定
   AccessLogger:                             # 访问日志设定
@@ -24,12 +24,12 @@ Web:                                        # Web 页面修改相关设置
     <script src="/MediaWarp/custom/emby-front-end-mod/fanart-show.js"></script>
     <script src="/MediaWarp/custom/emby-front-end-mod/playbackRate.js"></script>
 
-  Crx: True                                 # crx 美化（Emby：https://github.com/Nolovenodie/emby-crx；Jellyfin：https://github.com/newday-life/jellyfin-crx）
-  ActorPlus: True                           # 过滤没有头像的演员和制作人员
+  Crx: False                                # crx 美化（Plex 不支持）
+  ActorPlus: False                          # 过滤没有头像的演员和制作人员（Plex 不支持）
   FanartShow: False                         # 显示同人图（fanart 图）
-  ExternalPlayerUrl: True                   # 是否开启外置播放器（仅 Emby）
-  Danmaku: True                             # Web 弹幕（Emby：https://github.com/9channel/dd-danmaku；Jellyfin：https://github.com/Izumiko/jellyfin-danmaku）
-  VideoTogether: True                       # 共同观影，详情见 https://videotogether.github.io/
+  ExternalPlayerUrl: False                  # 是否开启外置播放器（Plex 不支持）
+  Danmaku: False                            # Web 弹幕（Plex 不支持）
+  VideoTogether: False                      # 共同观影（Plex 不支持）
 
 ClientFilter:                               # 客户端过滤器
   Enable: False                             # 是否启用客户端过滤器
@@ -42,7 +42,7 @@ HTTPStrm:                                   # HTTPStrm 相关配置（Strm 文�
   Enable: True                              # 是否开启 HttpStrm 重定向
   TransCode: False                          # False：强制关闭转码 True：保持原有转码设置
   FinalURL: True                            # 对 URL 进行重定向判断，找到非重定向地址再重定向给客户端，减少客户端重定向次数（适用于 Strm 内容是局域网地址但是想要在公网之中播放）
-  PrefixList:                               # EmbyServer 中 Strm 文件的前缀（符合该前缀的 Strm 文件且被正确识别为 HTTP 协议都会路由到该规则下）
+  PrefixList:                               # PlexServer 中 Strm 文件的前缀（符合该前缀的 Strm 文件且被正确识别为 HTTP 协议都会路由到该规则下）
     - /media/strm/http
     - /media/strm/https
 
@@ -54,7 +54,7 @@ AlistStrm:                                  # AlistStrm 相关配置（Strm 文�
     - ADDR: http://192.168.1.100:5244       # Alist 服务器地址
       Username: admin                       # Alist 服务器账号
       Password: adminadmin                  # Alist 服务器密码
-      PrefixList:                           # EmbyServer 中 Strm 文件的前缀（符合该前缀的 Strm 文件都会路由到该规则下）
+      PrefixList:                           # PlexServer 中 Strm 文件的前缀（符合该前缀的 Strm 文件都会路由到该规则下）
         - /media/strm/MyAlist               # 同一个 Alist 可以有多个前缀规则
         - /mnt/cd2/strm
     - ADDR: https://xiaoya.com              # 可以填写多个配置
@@ -62,9 +62,7 @@ AlistStrm:                                  # AlistStrm 相关配置（Strm 文�
       PrefixList: 
         - /media/strm
 
-Subtitle:                                   # 字体相关设置（仅 Emby 支持）
-  Enable: True                              # 启用
-  SRT2ASS: True                             # SRT 字幕转 ASS 字幕
-  ASSStyle:                                 # SRT 字幕转 ASS 字幕使用的样式
-    - "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding"
-    - "Style: Default,楷体,20,&H03FFFFFF,&H00FFFFFF,&H00000000,&H02000000,-1,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1"
+Subtitle:                                   # 字体相关设置（Plex 不支持）
+  Enable: False                             # 启用
+  SRT2ASS: False                            # SRT 字幕转 ASS 字幕（Plex 不支持）
+  ASSStyle: []                              # SRT 字幕转 ASS 字幕使用的样式（Plex 不支持）

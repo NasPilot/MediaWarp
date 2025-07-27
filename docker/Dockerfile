@@ -1,4 +1,4 @@
-FROM golang:1.24 AS builder
+FROM golang:1.24.5 AS builder
 ENV GO111MODULE=on \
     GOPROXY=https://goproxy.io,direct \
     CGO_ENABLED=0

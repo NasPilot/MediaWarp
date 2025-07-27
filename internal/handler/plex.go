@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"MediaWarp/internal/config"
-	"MediaWarp/internal/logging"
-	"MediaWarp/internal/utils"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -11,6 +8,10 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"MediaWarp/internal/config"
+	"MediaWarp/internal/logging"
+	"MediaWarp/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -68,7 +69,10 @@ func NewPlexServerHandler(plexHost, plexToken string) (MediaServerHandler, error
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		logging.Errorf("Plex代理错误: %v", err)
 		w.WriteHeader(http.StatusBadGateway)
-		w.Write([]byte(fmt.Sprintf("代理到Plex服务器失败: %v", err)))
+		// 使用更安全的错误响应，避免暴露内部错误信息
+		if _, writeErr := w.Write([]byte("代理到Plex服务器失败")); writeErr != nil {
+			logging.Errorf("写入错误响应失败: %v", writeErr)
+		}
 	}
 
 	// 自定义响应修改
@@ -146,6 +150,27 @@ func (h *PlexServerHandler) GetRegexpRouteRules() []RegexpRouteRule {
 	return h.routeRules
 }
 
+// buildPlexURL 构建带有token的Plex URL - 优化重复代码
+func (h *PlexServerHandler) buildPlexURL(path string, query string) string {
+	var urlBuilder strings.Builder
+	urlBuilder.WriteString(h.plexHost)
+	urlBuilder.WriteString(path)
+	
+	if query != "" {
+		urlBuilder.WriteString("?")
+		urlBuilder.WriteString(query)
+		if h.plexToken != "" && !strings.Contains(query, "X-Plex-Token") {
+			urlBuilder.WriteString("&X-Plex-Token=")
+			urlBuilder.WriteString(h.plexToken)
+		}
+	} else if h.plexToken != "" {
+		urlBuilder.WriteString("?X-Plex-Token=")
+		urlBuilder.WriteString(h.plexToken)
+	}
+	
+	return urlBuilder.String()
+}
+
 // HandleMediaRedirect 处理媒体文件重定向
 func (h *PlexServerHandler) HandleMediaRedirect(c *gin.Context) {
 	// 从URL路径中提取partID和fileID
@@ -162,17 +187,9 @@ func (h *PlexServerHandler) HandleMediaRedirect(c *gin.Context) {
 	fileID := matches[2]
 
 	// 构建原始Plex URL
-	originalURL := fmt.Sprintf("%s/library/parts/%s/%s/file", h.plexHost, partID, fileID)
+	path = fmt.Sprintf("/library/parts/%s/%s/file", partID, fileID)
 	query := c.Request.URL.RawQuery
-	
-	if query != "" {
-		originalURL += "?" + query
-		if h.plexToken != "" && !strings.Contains(query, "X-Plex-Token") {
-			originalURL += "&X-Plex-Token=" + h.plexToken
-		}
-	} else if h.plexToken != "" {
-		originalURL += "?X-Plex-Token=" + h.plexToken
-	}
+	originalURL := h.buildPlexURL(path, query)
 
 	// 检查是否需要路径映射
 	if config.HTTPStrm.Enable {
@@ -190,16 +207,7 @@ func (h *PlexServerHandler) HandleTranscodeRedirect(c *gin.Context) {
 	// 构建转码URL
 	path := c.Request.URL.Path
 	query := c.Request.URL.RawQuery
-	transcodeURL := fmt.Sprintf("%s%s", h.plexHost, path)
-	
-	if query != "" {
-		transcodeURL += "?" + query
-		if h.plexToken != "" && !strings.Contains(query, "X-Plex-Token") {
-			transcodeURL += "&X-Plex-Token=" + h.plexToken
-		}
-	} else if h.plexToken != "" {
-		transcodeURL += "?X-Plex-Token=" + h.plexToken
-	}
+	transcodeURL := h.buildPlexURL(path, query)
 
 	// 重定向到转码URL
 	c.Redirect(http.StatusFound, transcodeURL)
@@ -211,16 +219,7 @@ func (h *PlexServerHandler) HandlePhotoRedirect(c *gin.Context) {
 	// 构建图片URL
 	path := c.Request.URL.Path
 	query := c.Request.URL.RawQuery
-	photoURL := fmt.Sprintf("%s%s", h.plexHost, path)
-	
-	if query != "" {
-		photoURL += "?" + query
-		if h.plexToken != "" && !strings.Contains(query, "X-Plex-Token") {
-			photoURL += "&X-Plex-Token=" + h.plexToken
-		}
-	} else if h.plexToken != "" {
-		photoURL += "?X-Plex-Token=" + h.plexToken
-	}
+	photoURL := h.buildPlexURL(path, query)
 
 	// 重定向到图片URL
 	c.Redirect(http.StatusFound, photoURL)
@@ -241,16 +240,10 @@ func (h *PlexServerHandler) HandleSubtitleRedirect(c *gin.Context) {
 
 	streamID := matches[1]
 	query := c.Request.URL.RawQuery
-	subtitleURL := fmt.Sprintf("%s/library/streams/%s", h.plexHost, streamID)
 	
-	if query != "" {
-		subtitleURL += "?" + query
-		if h.plexToken != "" && !strings.Contains(query, "X-Plex-Token") {
-			subtitleURL += "&X-Plex-Token=" + h.plexToken
-		}
-	} else if h.plexToken != "" {
-		subtitleURL += "?X-Plex-Token=" + h.plexToken
-	}
+	// 构建字幕URL
+	path = fmt.Sprintf("/library/streams/%s", streamID)
+	subtitleURL := h.buildPlexURL(path, query)
 
 	// 重定向到字幕URL
 	c.Redirect(http.StatusFound, subtitleURL)

@@ -36,10 +36,10 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Set Up Golong Environment
+      - name: Set Up Golang Environment
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22.5"
+          go-version: "1.24.5"
 
       - name: Build Binary for ${{ matrix.os }}-${{ matrix.arch }}
         run: |
