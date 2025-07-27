@@ -1,0 +1,80 @@
+# 版本更新日志
+- 2024-8-21: v0.0.1
+  - 实现 MediaWarp 基本功能
+- 2024-8-25: v0.0.2
+  - 增加返回自定义静态资源功能
+  - 优化播放直链视频 302 重定向逻辑
+  - 增加自定义客户端过滤功能
+- 2024-9-14: v0.0.3
+  - 实现 AlistStrm 重定向
+  - 适配 EmbyServer 4.9 视频播放逻辑
+  - 嵌入实用功能（外部播放器、弹幕、美化等）
+  - 支持WebSocket
+- 2024-9-29: v0.0.4
+  - 优化 mediaSourceID 处理逻辑
+  - 使用 httputil.ReverseProxy 处理 HTTP 和 WebSocket 请求
+  - 设置浏览器referer策略，跳转时减少服务器站点泄露
+  - 使用正则表达式进行路由匹配
+  - 定义缓存接口、实现内存缓存逻辑
+  - 修改项目结构
+  - 用户自定义资源设为 Custom、从 config 中读取需要额外添加的 HEAD
+  - 日志允许设置是否输出到终端或文件
+  - 日志根据日期分割
+- 2024.11.1: v0.0.5
+  - 扩大 VideosHandler 匹配范围（修复 FileBall 下 Strm 文件播放问题，不完美）
+  - 中间件缓存可选是否开启（避免内存缓存缓存大量图片、css、js 等资源）
+  - 修改 internal/config、internal/logger、internal/cache 这几个包，使其使用方式更加 “golang”
+  - 支持加载多种格式的配置文件（JSON、TOML、YAML、YML、Java properties、Java props）
+- 2024.12.22: v0.0.6
+  - 提供 API 接口查看版本具体信息
+  - 小幅度修改项目子包结构
+  - 使用 goreleaser 进行构建
+  - 减小 EmbyServer.VideosHandler 匹配范围
+  - 需要修改响应体时复用之前实例化的 httputil.ReverseProxy
+  - EmbyServerHandler.PlaybackInfoHandler 拦截修改响应修改 AlistStrm 正确播放地址
+- 2025.2.20: v0.0.7
+  - 提供字幕接口相关正则，新增 SRT 字幕转 ASS 字幕功能
+  - 修复当 MediaStreams 为空数组的情况移除该字段导致导致部分客户端报错问题
+  - 优化 VideosHandler 函数中优先判断是否为 HEAD 请求
+  - 优化 ModifyPlaybackInfo 函数，减少无意义请求数，降低响应延迟
+  - 新增转码设置选项以支持 HTTPStrm 和 AlistStrm  是否返回 PlaybackInfo 通告客户端禁止转码
+  - f新增 RawURL 配置选项以控制 AlistStrm 的重定向链接
+- 2025.3.22: v0.0.8
+  - 优化 AlistStrm 重定向连接
+  - 重构 EmbyRegexp 结构，优化正则表达式管理 
+  - 优化 EmbyServerHandler.ModifySubtitles 和 EmbyServerHandler.ModifyBaseHtmlPlayer 性能
+  - 优化 SRT2ASS 性能
+  - 修改正则路由处理，使用不带查询参数的 URL 路径（Path）进行路由匹配
+  - 添加版本信息标志，支持显示当前版本信息
+- 2025.3.26: v0.0.9
+  -  调整静态资源、自定义目录
+  -  使用 git 子模块的方式引入 js、css 等文件，移除 emby css 美化功能
+  -  移除内存缓存相关设计，以避免内存泄漏
+  -  修复 ModifyPlaybackInfo 和 ModifySubtitles 函数中的响应体关闭顺序，确保正确读取 HTTP 响应
+  -  优化 EmbyServerHandler.responseModifyCreater 闭包逻辑
+  -  使用 switch 语句重构客户端过滤器逻辑，移除未知模式处理
+  -  使用 gin.Recovery() 捕获 panic，避免 MediaWarp 出现意外错误后软件崩溃
+  -  优化程序启动逻辑，改进错误处理
+  -  解析构建时间格式，改进构建日期处理逻辑
+  -  更新 go-lang 版本及第三方依赖
+- 2025.3.27: v0.0.10
+  -  主函数添加信号处理和错误处理机制，优化服务退出流程
+  -  修复配置初始化失败时错误调用日志输出，改为使用标准输出
+  -  将 responseModifyCreater、recgonizeStrmFileType、updateBody 函数移至 utils.go 并独立与 EmbyServerHandler，便于后续复用
+  -  修复日志中间件颜色控制输出错误问题
+  -  将反向代理逻辑从 emby.EmbyServer 移至 handler.EmbyServerHandler
+  -  重构媒体服务器处理器初始化逻辑，改为返回错误以便更好地处理初始化失败情况
+  -  添加 GZIP、Brotli 解压支持并重构读取响应体的逻辑
+  -  在正则路由处理器中添加调试日志以记录匹配成功的 URL
+  -  在恢复中间件中添加详细的错误日志记录以处理 panic 错误
+  -  支持通过命令行参数指定配置文件路径
+- 2025.3.29: v0.1.0
+  - 添加 Jellyfin 支持
+  - 添加 crx 美化功能（支持 Emby 和 Jellyfin）
+  - 调整某些常量命名，更符合 go-lang 命名
+- 2025.6.2: v0.1.1
+  - 更新上游依赖
+  - 提高对 EmbyServer beta 版本的兼容性
+  - HTTPStrm 添加获取最终 URL 获取功能，减少客户端重定向次数
+  - 提高对 Afusekt 客户端的兼容性 [#37](https://github.com/Akimio521/MediaWarp/issues/37)
+  - 优化 responseModifyCreater 函数，可以捕捉内层函数的 panic 信息
