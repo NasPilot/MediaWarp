@@ -1,6 +1,8 @@
 module MediaWarp
 
-go 1.24.1
+go 1.23.0
+
+toolchain go1.23.11
 
 require (
 	github.com/andybalholm/brotli v1.1.1

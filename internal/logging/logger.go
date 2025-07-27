@@ -49,6 +49,11 @@ func AccessLog(format string, args ...any) {
 	accessLogger.Infof(format, args...)
 }
 
+// AccessLogf 访问日志格式化输出
+func AccessLogf(format string, args ...any) {
+	accessLogger.Infof(format, args...)
+}
+
 // 服务日志
 //
 // Debug 级别日志
