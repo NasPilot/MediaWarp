@@ -7,8 +7,8 @@ import (
 
 var (
 	appVersion string = "v0.1.14"
-	commitHash string = "Unkown"
-	buildDate  string = "Unkown"
+	commitHash string = "Unknown"
+	buildDate  string = "Unknown"
 )
 
 func parseBuildTime(s string) string {
