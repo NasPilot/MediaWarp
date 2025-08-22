@@ -84,3 +84,41 @@ type SubtitleSetting struct {
 	ASSStyle []string
 	SubSet   bool // ASS 字幕字体子集化
 }
+
+// Strm302重定向设置
+type Strm302Setting struct {
+	Enable           bool     // 启用302重定向功能
+	MediaMountPath   []string // 媒体挂载路径列表
+	TranscodeEnable  bool     // 是否允许转码
+	FallbackOriginal bool     // 失败时是否回退到原始链接
+}
+
+// Alist配置
+type AlistConfig struct {
+	Addr            string            // Alist服务器地址
+	Token           string            // Alist访问令牌
+	SignEnable      bool              // 是否启用签名
+	SignExpireTime  int               // 签名过期时间(秒)
+	PublicAddr      string            // Alist公网地址
+	RawUrlMapping   map[string]string // 原始URL映射
+}
+
+// 路径映射规则
+type PathMappingRule struct {
+	From string // 源路径
+	To   string // 目标路径
+}
+
+// 软链接规则
+type SymlinkRule struct {
+	Path   string // 软链接路径
+	Target string // 目标路径
+}
+
+// 重定向配置
+type RedirectConfig struct {
+	Enable            bool               // 启用重定向
+	CheckEnable       bool               // 启用重定向检查
+	MediaPathMapping  []PathMappingRule  // 媒体路径映射规则
+	SymlinkRules      []SymlinkRule      // 软链接规则
+}

@@ -11,6 +11,7 @@ import (
 
 	"MediaWarp/internal/config"
 	"MediaWarp/internal/logging"
+	"MediaWarp/internal/service"
 	"MediaWarp/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -173,6 +174,13 @@ func (h *PlexServerHandler) buildPlexURL(path string, query string) string {
 
 // HandleMediaRedirect 处理媒体文件重定向
 func (h *PlexServerHandler) HandleMediaRedirect(c *gin.Context) {
+	// 检查是否启用strm302重定向
+	if config.Strm302.Enable {
+		if h.handleStrmRedirect(c) {
+			return
+		}
+	}
+
 	// 从URL路径中提取partID和fileID
 	path := c.Request.URL.Path
 	re := regexp.MustCompile(`^/library/parts/(\d+)/(\d+)/file`)
@@ -248,4 +256,41 @@ func (h *PlexServerHandler) HandleSubtitleRedirect(c *gin.Context) {
 	// 重定向到字幕URL
 	c.Redirect(http.StatusFound, subtitleURL)
 	logging.Infof("字幕重定向: %s -> %s", c.Request.URL.String(), subtitleURL)
+}
+
+// handleStrmRedirect 处理strm文件的302重定向
+func (h *PlexServerHandler) handleStrmRedirect(c *gin.Context) bool {
+	// 创建strm服务
+	strmService := service.NewStrmService(&config.Strm302)
+
+	// 检查是否为媒体请求
+	if !service.IsMediaRequest(c.Request) {
+		return false
+	}
+
+	// 从请求中提取文件路径
+	filePath := service.ExtractFilePathFromRequest(c.Request)
+	if filePath == "" {
+		return false
+	}
+
+	// 检查是否应该进行重定向
+	userAgent := c.Request.Header.Get("User-Agent")
+	if !strmService.ShouldRedirect(filePath, userAgent) {
+		return false
+	}
+
+	// 检查是否为strm文件
+	if !strmService.IsStrmFile(filePath) {
+		return false
+	}
+
+	// 尝试处理重定向
+	err := strmService.HandleRedirect(c.Writer, c.Request, filePath)
+	if err != nil {
+		logging.Errorf("strm重定向失败: %v", err)
+		return false
+	}
+
+	return true
 }

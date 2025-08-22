@@ -29,6 +29,9 @@ var (
 	HTTPStrm     HTTPStrmSetting     // HTTPSTRM设置
 	AlistStrm    AlistStrmSetting    // AlistStrm设置
 	Subtitle     SubtitleSetting     // 字幕设置
+	Strm302      Strm302Setting      // Strm302重定向设置
+	Alist        AlistConfig         // Alist配置
+	Redirect     RedirectConfig      // 重定向配置
 )
 
 // 获取版本信息
@@ -141,6 +144,15 @@ func loadConfig(path string) error {
 	}
 	if err := viper.UnmarshalKey("Subtitle", &Subtitle); err != nil {
 		return fmt.Errorf("SubtitleSetting  解析失败, %v", err)
+	}
+	if err := viper.UnmarshalKey("Strm302", &Strm302); err != nil {
+		return fmt.Errorf("Strm302Setting  解析失败, %v", err)
+	}
+	if err := viper.UnmarshalKey("Alist", &Alist); err != nil {
+		return fmt.Errorf("AlistConfig  解析失败, %v", err)
+	}
+	if err := viper.UnmarshalKey("Redirect", &Redirect); err != nil {
+		return fmt.Errorf("RedirectConfig  解析失败, %v", err)
 	}
 	return nil
 }

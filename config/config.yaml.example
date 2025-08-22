@@ -62,6 +62,35 @@ AlistStrm:                                  # AlistStrm 相关配置（Strm 文�
       PrefixList: 
         - /media/strm
 
+Strm302:                                   # Strm302 重定向配置
+  Enable: False                             # 是否启用 302 重定向功能
+  MediaMountPath:                           # 媒体挂载路径列表
+    - /media
+    - /movies
+    - /tv
+  TranscodeEnable: True                     # 是否允许转码
+  FallbackOriginal: True                    # 失败时是否回退到原始链接
+
+Alist:                                      # Alist 服务配置
+  ADDR: http://localhost:5244               # Alist 服务器地址
+  Token: your_alist_token_here              # Alist 访问令牌
+  SignEnable: False                         # 是否启用签名
+  SignExpireTime: 3600                      # 签名过期时间(秒)
+  PublicADDR: ""                            # Alist 公网地址(用于替换内网地址)
+  RawURLMapping: {}                         # 原始URL映射
+
+Redirect:                                   # 重定向配置
+  Enable: False                             # 是否启用重定向
+  CheckEnable: True                         # 是否启用重定向检查
+  MediaPathMapping:                         # 媒体路径映射规则
+    - From: /local/media                    # 本地路径
+      To: /alist/media                      # Alist 路径
+    - From: /mnt/movies
+      To: /movies
+  SymlinkRules:                             # 软链接规则
+    - Path: /symlink/path                   # 软链接路径
+      Target: /target/path                  # 目标路径
+
 Subtitle:                                   # 字体相关设置（Plex 不支持）
   Enable: False                             # 启用
   SRT2ASS: False                            # SRT 字幕转 ASS 字幕（Plex 不支持）
